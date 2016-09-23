@@ -74,6 +74,14 @@ class GraphManager():
                             "--y",
                             type=str,
                             help="specify a column for y-axis")
+        parser.add_argument("-xl",
+                            "--xlabel",
+                            type=str,
+                            help="overwrite the xlabel")
+        parser.add_argument("-yl",
+                            "--ylabel",
+                            type=str,
+                            help="overwrite the ylabel")
         parser.add_argument("-u",
                             "--hue",
                             type=str,
