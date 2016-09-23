@@ -13,7 +13,8 @@ class PlotDrawerFactory():
                            'count',
                            'joint',
                            'strip',
-                           'pair']
+                           'pair',
+                           'percentile']
 
     def create(self, file, plot_type):
         """ create """
@@ -35,6 +36,8 @@ class PlotDrawerFactory():
             return StripPlotDrawer(file)
         elif plot_type == "pair":
             return PairPlotDrawer(file)
+        elif plot_type == "percentile":
+            return PercentilePlotDrawer(file)
         else:
             print("The plot type is not implemented")
             sys.exit(1)
