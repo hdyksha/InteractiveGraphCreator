@@ -43,7 +43,7 @@ class PlotDrawer(metaclass=ABCMeta):
     def draw(self, arg_dict):
         """
         Set configuration based on the arg_dict which includes params specified by
-        command line args ,draw a plot and save it
+        command line args, draw a plot and save it
         """
         self.set_conf(arg_dict)
         self.read_csv()
@@ -51,7 +51,9 @@ class PlotDrawer(metaclass=ABCMeta):
         self.set_context()
         self.set_style()
         self.set_palette()
-        self.plot()
+#        print(self.arg_dict)
+        self.plot = self.plot()
+        self.label()
         sns.plt.savefig(self.outfile)
 
     @abstractmethod
@@ -61,6 +63,13 @@ class PlotDrawer(metaclass=ABCMeta):
         * This method is called after configuration phases and
         actual plot functions should be called in this method.
         """
+        pass
+
+    def label(self):
+        if "x" in self.arg_dict and self.xlabel:
+            plt.xlabel(self.xlabel)
+        if "y" in self.arg_dict and self.ylabel:
+            plt.ylabel(self.ylabel)
         pass
 
     def print_header(self):
@@ -161,6 +170,8 @@ class PlotDrawer(metaclass=ABCMeta):
         """
         self.outfile = arg_dict["outfile"] if "outfile" in arg_dict else self.file.replace(".csv", ".png")
         self.noheader = arg_dict["noheader"] if "noheader" in arg_dict else False
+        self.xlabel = arg_dict["xlabel"] if "xlabel" in arg_dict else None
+        self.ylabel = arg_dict["ylabel"] if "ylabel" in arg_dict else None
         self.context = arg_dict["context"] if "context" in arg_dict else None
         self.style = arg_dict["style"] if "style" in arg_dict else None
         self.palette = arg_dict["palette"] if "palette" in arg_dict else None
@@ -173,7 +184,7 @@ class ScatterPlotDrawer(PlotDrawer):
 #        self.optional_numeric_args = ["size"]
 
     def plot(self):
-        sns.lmplot(**self.arg_dict, fit_reg=False)
+        return sns.lmplot(**self.arg_dict, fit_reg=False)
 
 class PointPlotDrawer(PlotDrawer):
     """ ScatterPlotDrawer """
@@ -182,7 +193,7 @@ class PointPlotDrawer(PlotDrawer):
         self.optional_args = ["hue"]
 
     def plot(self):
-        sns.pointplot(**self.arg_dict)
+        return sns.pointplot(**self.arg_dict)
 
 class BarPlotDrawer(PlotDrawer):
     """ BarPlotDrawer """
@@ -191,7 +202,7 @@ class BarPlotDrawer(PlotDrawer):
         self.optional_args = ["hue"]
 
     def plot(self):
-        sns.barplot(**self.arg_dict)
+        return sns.barplot(**self.arg_dict)
 
 class DistPlotDrawer(PlotDrawer):
     """ DistPlotDrawer """
@@ -199,7 +210,7 @@ class DistPlotDrawer(PlotDrawer):
         self.default_args = ["x"]
 
     def plot(self):
-        sns.distplot(self.df[self.arg_dict["x"]])
+        return sns.distplot(self.df[self.arg_dict["x"]])
 
 class BoxPlotDrawer(PlotDrawer):
     """ BoxPlotDrawer """
@@ -208,7 +219,7 @@ class BoxPlotDrawer(PlotDrawer):
         self.optional_args = ["hue"]
 
     def plot(self):
-        sns.boxplot(**self.arg_dict)
+        return sns.boxplot(**self.arg_dict)
 
 class CountPlotDrawer(PlotDrawer):
     """ CountPlotDrawer """
@@ -217,7 +228,7 @@ class CountPlotDrawer(PlotDrawer):
         self.optional_args = ["hue"]
 
     def plot(self):
-        sns.countplot(**self.arg_dict)
+        return sns.countplot(**self.arg_dict)
 
 class JointPlotDrawer(PlotDrawer):
     """ JointPlotDrawer """
@@ -225,7 +236,12 @@ class JointPlotDrawer(PlotDrawer):
         self.default_args = ["x", "y"]
 
     def plot(self):
-        sns.jointplot(**self.arg_dict)
+        return sns.jointplot(**self.arg_dict)
+
+    def label(self):
+        xlabel = self.xlabel if self.xlabel else self.arg_dict["x"]
+        ylabel = self.ylabel if self.ylabel else self.arg_dict["y"]
+        self.plot.set_axis_labels(xlabel, ylabel)
 
 class StripPlotDrawer(PlotDrawer):
     """ JointPlotDrawer """
@@ -234,7 +250,7 @@ class StripPlotDrawer(PlotDrawer):
         self.optional_args = ["hue"]
 
     def plot(self):
-        sns.stripplot(**self.arg_dict)
+        return sns.stripplot(**self.arg_dict)
 
 class PairPlotDrawer(PlotDrawer):
     """ PairPlotDrawer """
@@ -242,4 +258,4 @@ class PairPlotDrawer(PlotDrawer):
         self.optional_args = ["hue"]
 
     def plot(self):
-        sns.pairplot(**self.arg_dict)
+        return sns.pairplot(**self.arg_dict)
