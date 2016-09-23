@@ -10,6 +10,14 @@ class PlotDrawer(metaclass=ABCMeta):
         print("{} starts drawing a graph".format(self.__class__.__name__))
         self.file = file
         self.arg_dict = {}
+        self.all_input_args = ["x", "y", "hue"]
+        self.default_args = []
+        self.optional_args = []
+        self.post_init()
+
+    @abstractmethod
+    def post_init(self):
+        pass
 
     def read_csv(self):
         print("reading the csv file")
@@ -25,6 +33,7 @@ class PlotDrawer(metaclass=ABCMeta):
         self.set_conf(arg_dict)
         self.read_csv()
         sns.set_style("whitegrid")
+        self.set_input()
         self.plot()
         sns.plt.savefig(self.outfile)
 
@@ -48,6 +57,16 @@ class PlotDrawer(metaclass=ABCMeta):
             print("input({}): ".format(key), end='')
             self.arg_dict[key] = self.columns[str(input())]
 
+    def set_input(self):
+        self.print_header()
+        for key in self.default_args:
+            self.default_input(key)
+        for key in self.optional_args:
+            self.optional_input(key)
+        residual_args = list(set(self.all_input_args) - set(self.default_args) - set(self.optional_args))
+        for key in residual_args:
+            self.remove_item(key)
+
     def remove_item(self, key):
         if key in self.arg_dict: del self.arg_dict[key]
 
@@ -63,71 +82,69 @@ class PlotDrawer(metaclass=ABCMeta):
 
 class ScatterPlotDrawer(PlotDrawer):
     """ ScatterPlotDrawer """
+    def post_init(self):
+        self.default_args = ["x", "y"]
+        self.optional_args = ["hue"]
+
     def plot(self):
-        self.print_header()
-        self.default_input("x")
-        self.default_input("y")
-        self.optional_input("hue")
         sns.lmplot(**self.arg_dict, fit_reg=False)
 
 class PointPlotDrawer(PlotDrawer):
     """ ScatterPlotDrawer """
+    def post_init(self):
+        self.default_args = ["x", "y"]
+        self.optional_args = ["hue"]
+
     def plot(self):
-        self.print_header()
-        self.default_input("x")
-        self.default_input("y")
-        self.optional_input("hue")
         sns.pointplot(**self.arg_dict)
 
 class BarPlotDrawer(PlotDrawer):
     """ BarPlotDrawer """
+    def post_init(self):
+        self.default_args = ["x", "y"]
+        self.optional_args = ["hue"]
+
     def plot(self):
-        self.print_header()
-        self.default_input("x")
-        self.default_input("y")
-        self.optional_input("hue")
         sns.barplot(**self.arg_dict)
 
 class DistPlotDrawer(PlotDrawer):
     """ DistPlotDrawer """
+    def post_init(self):
+        self.default_args = ["x"]
+
     def plot(self):
-        self.print_header()
-        self.default_input("x")
-        self.remove_item("y")
-        self.remove_item("hue")
         sns.distplot(self.df[self.arg_dict["x"]])
 
 class BoxPlotDrawer(PlotDrawer):
     """ BoxPlotDrawer """
+    def post_init(self):
+        self.default_args = ["x", "y"]
+        self.optional_args = ["hue"]
+
     def plot(self):
-        self.print_header()
-        self.default_input("x")
-        self.default_input("y")
-        self.optional_input("hue")
         sns.boxplot(**self.arg_dict)
 
 class CountPlotDrawer(PlotDrawer):
     """ CountPlotDrawer """
+    def post_init(self):
+        self.default_args = ["x"]
+        self.optional_args = ["hue"]
+
     def plot(self):
-        self.print_header()
-        self.default_input("x")
-        self.optional_input("hue")
-        self.remove_item("y")
         sns.countplot(**self.arg_dict)
 
 class JointPlotDrawer(PlotDrawer):
     """ JointPlotDrawer """
+    def post_init(self):
+        self.default_args = ["x", "y"]
+
     def plot(self):
-        self.print_header()
-        self.default_input("x")
-        self.default_input("y")
-        self.remove_item("hue")
         sns.jointplot(**self.arg_dict)
 
 class PairPlotDrawer(PlotDrawer):
     """ PairPlotDrawer """
+    def post_init(self):
+        self.optional_args = ["hue"]
+
     def plot(self):
-        self.optional_input("hue")
-        self.remove_item("x")
-        self.remove_item("y")
         sns.pairplot(**self.arg_dict)
