@@ -4,7 +4,14 @@ class PlotDrawerFactory():
     """ PlotDrawerFactory """
     def __init__(self):
         """ init """
-        pass
+        self.plot_types = ['scatter',
+                           'point',
+                           'bar',
+                           'dist',
+                           'box',
+                           'count',
+                           'joint',
+                           'pair']
 
     def create(self, file, plot_type):
         """ create """
@@ -27,3 +34,7 @@ class PlotDrawerFactory():
         else:
             print("The plot type is not implemented")
             sys.exit(1)
+
+    def get_plot_types(self):
+        """ get_plot_types """
+        return self.plot_types

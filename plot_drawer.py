@@ -10,9 +10,9 @@ class PlotDrawer(metaclass=ABCMeta):
         print("{} starts drawing a graph".format(self.__class__.__name__))
         self.file = file
         self.arg_dict = {}
-        self.all_input_args = ["x", "y", "hue"]
         self.default_args = []
         self.optional_args = []
+        self.optional_numeric_args = []
         self.post_init()
 
     @abstractmethod
@@ -32,8 +32,10 @@ class PlotDrawer(metaclass=ABCMeta):
     def draw(self, arg_dict):
         self.set_conf(arg_dict)
         self.read_csv()
-        sns.set_style("whitegrid")
-        self.set_input()
+        self.set_input(arg_dict)
+        self.set_context()
+        self.set_style()
+        self.set_palette()
         self.plot()
         sns.plt.savefig(self.outfile)
 
@@ -47,28 +49,79 @@ class PlotDrawer(metaclass=ABCMeta):
         for i, column in enumerate(self.columns):
             print("    {}: {}".format(i, column))
 
-    def default_input(self, key):
-        if not key in self.arg_dict or not self.arg_dict[key] in self.columns:
+    def default_input(self, arg_dict, key):
+        if key in arg_dict and arg_dict[key] in self.columns:
+            self.arg_dict[key] = arg_dict[key]
+        else:
             print("input({}): ".format(key), end='')
             self.arg_dict[key] = self.columns[str(input())]
 
-    def optional_input(self, key):
-        if key in self.arg_dict and not self.arg_dict[key] in self.columns:
-            print("input({}): ".format(key), end='')
-            self.arg_dict[key] = self.columns[str(input())]
+    def optional_input(self, arg_dict, key):
+        if key in arg_dict:
+            if arg_dict[key] in self.columns:
+                self.arg_dict[key] = arg_dict[key]
+            else:
+                print("input({}): ".format(key), end='')
+                self.arg_dict[key] = self.columns[str(input())]
 
-    def set_input(self):
+    def optional_numeric_input(self, arg_dict, key):
+        if key in arg_dict and isinstance(arg_dict[key], int):
+            self.arg_dict[key] = arg_dict[key]
+        else:
+            print("input({}): ".format(key), end='')
+            self.arg_dict[key] = int(input())
+
+    def set_input(self, arg_dict):
         self.print_header()
         for key in self.default_args:
-            self.default_input(key)
+            self.default_input(arg_dict, key)
         for key in self.optional_args:
-            self.optional_input(key)
-        residual_args = list(set(self.all_input_args) - set(self.default_args) - set(self.optional_args))
-        for key in residual_args:
-            self.remove_item(key)
+            self.optional_input(arg_dict, key)
+        for key in self.optional_numeric_args:
+            self.optional_numeric_input(arg_dict, key)
 
-    def remove_item(self, key):
-        if key in self.arg_dict: del self.arg_dict[key]
+    def set_context(self):
+        contexts = ["paper", "notebook", "talk", "poster"]
+        if self.context:
+            if self.context in contexts:
+                sns.set_context(self.context)
+            else:
+                print("--------------------------------------------------")
+                print("please select a context parameter")
+                for i, context in enumerate(contexts):
+                    print("    {}: {}".format(i, context))
+                print("input(context): ", end='')
+                sns.set_context(contexts[int(input())])
+
+    def set_style(self):
+        styles = ["darkgrid", "whitegrid", "dark", "white", "ticks"]
+        if self.style:
+            if self.style in styles:
+                sns.set_style(self.style)
+            else:
+                print("--------------------------------------------------")
+                print("please select a style parameter")
+                for i, style in enumerate(styles):
+                    print("    {}: {}".format(i, style))
+                print("input(style): ", end='')
+                sns.set_style(styles[int(input())])
+        else:
+            sns.set_style("whitegrid")
+
+    def set_palette(self):
+        palettes = ["deep", "muted", "pastel", "bright", "dark", "colorblind"]
+        if self.palette:
+            if self.palette in palettes:
+                sns.set_palette(self.palette)
+            else:
+                print("--------------------------------------------------")
+                print("please select a palette parameter")
+                for i, palette in enumerate(palettes):
+                    print("    {}: {}".format(i, palette))
+                print("input(palette): ", end='')
+                sns.set_palette(palettes[int(input())])
+        else:
+            sns.set_palette("deep")
 
     def set_conf(self, arg_dict):
         """
@@ -76,15 +129,16 @@ class PlotDrawer(metaclass=ABCMeta):
         """
         self.outfile = arg_dict["outfile"] if "outfile" in arg_dict else self.file.replace(".csv", ".png")
         self.noheader = arg_dict["noheader"] if "noheader" in arg_dict else False
-        if "xaxis" in arg_dict: self.arg_dict["x"] = arg_dict["xaxis"]
-        if "yaxis" in arg_dict: self.arg_dict["y"] = arg_dict["yaxis"]
-        if "hue" in arg_dict: self.arg_dict["hue"] = arg_dict["hue"]
+        self.context = arg_dict["context"] if "context" in arg_dict else None
+        self.style = arg_dict["style"] if "style" in arg_dict else None
+        self.palette = arg_dict["palette"] if "palette" in arg_dict else None
 
 class ScatterPlotDrawer(PlotDrawer):
     """ ScatterPlotDrawer """
     def post_init(self):
         self.default_args = ["x", "y"]
         self.optional_args = ["hue"]
+#        self.optional_numeric_args = ["size"]
 
     def plot(self):
         sns.lmplot(**self.arg_dict, fit_reg=False)
