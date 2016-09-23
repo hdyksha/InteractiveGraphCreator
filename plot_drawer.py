@@ -47,12 +47,14 @@ class PlotDrawer(metaclass=ABCMeta):
         """
         self.set_conf(arg_dict)
         self.read_csv()
+#        print(self.df["id"].quantile(.99))
         self.set_input(arg_dict)
         self.set_context()
         self.set_style()
         self.set_palette()
 #        print(self.arg_dict)
         self.plot = self.plot()
+#        plt.plot([0, 100], [self.df[self.arg_dict["y"]].quantile(.9), self.df[self.arg_dict["y"]].quantile(.9)])
         self.label()
         sns.plt.savefig(self.outfile)
 
@@ -67,10 +69,9 @@ class PlotDrawer(metaclass=ABCMeta):
 
     def label(self):
         if "x" in self.arg_dict and self.xlabel:
-            plt.xlabel(self.xlabel)
+            sns.plt.xlabel(self.xlabel)
         if "y" in self.arg_dict and self.ylabel:
-            plt.ylabel(self.ylabel)
-        pass
+            sns.plt.ylabel(self.ylabel)
 
     def print_header(self):
         print("--------------------------------------------------")
@@ -259,3 +260,21 @@ class PairPlotDrawer(PlotDrawer):
 
     def plot(self):
         return sns.pairplot(**self.arg_dict)
+
+class PercentilePlotDrawer(PlotDrawer):
+    """ PercentilePlotDrawer """
+    def post_init(self):
+        self.default_args = ["x", "y"]
+        self.optional_args = ["hue"]
+
+    def plot(self):
+        plot = sns.lmplot(**self.arg_dict, fit_reg=False)
+        xmin = self.df[self.arg_dict["x"]].min()
+        xmax = self.df[self.arg_dict["x"]].max()
+        # http://xkcd.com/color/rgb/
+        color = sns.xkcd_rgb["cool grey"]
+        p = .99
+        percentile = self.df[self.arg_dict["y"]].quantile(p)
+        sns.plt.plot([xmin, xmax], [percentile, percentile], color)
+        sns.plt.title('{}%ile = {}'.format(int(p*100), percentile))
+        return plot
