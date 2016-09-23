@@ -9,14 +9,6 @@ class GraphManager():
         """ init """
         self.file = None
         self.plot_type = None
-        self.plot_types = ['scatter',
-                           'point',
-                           'bar',
-                           'dist',
-                           'box',
-                           'count',
-                           'joint',
-                           'pair']
         self.arg_dict = {}
 
     def select_file(self):
@@ -48,10 +40,11 @@ class GraphManager():
         if not self.plot_type:
             print("--------------------------------------------------")
             print("please select the number of plot types")
-            for i, plot_type in enumerate(self.plot_types):
+            plot_types = pdfactory.get_plot_types()
+            for i, plot_type in enumerate(plot_types):
                 print("    {}: {}".format(i, plot_type))
             print("input(plot type): ", end='')
-            self.plot_type = self.plot_types[int(input())]
+            self.plot_type = plot_types[int(input())]
         pdfactory.create(self.file, self.plot_type).draw(self.arg_dict)
 
     def parse_args(self):
@@ -74,11 +67,11 @@ class GraphManager():
                             action="store_true",
                             help="not read a header in a csv file")
         parser.add_argument("-x",
-                            "--xaxis",
+                            "--x",
                             type=str,
                             help="specify a column for x-axis")
         parser.add_argument("-y",
-                            "--yaxis",
+                            "--y",
                             type=str,
                             help="specify a column for y-axis")
         parser.add_argument("-u",
@@ -87,6 +80,24 @@ class GraphManager():
                             nargs="?",
                             const="?",
                             help="use hue option when drawing a plot")
+        parser.add_argument("-c",
+                            "--context",
+                            type=str,
+                            nargs="?",
+                            const="?",
+                            help="set context")
+        parser.add_argument("-s",
+                            "--style",
+                            type=str,
+                            nargs="?",
+                            const="?",
+                            help="set style")
+        parser.add_argument("-P",
+                            "--palette",
+                            type=str,
+                            nargs="?",
+                            const="?",
+                            help="set palette")
         args = parser.parse_args()
         print(vars(args))
         for k, v in vars(args).items():
