@@ -17,9 +17,20 @@ class PlotDrawer(metaclass=ABCMeta):
 
     @abstractmethod
     def post_init(self):
+        """
+        * This method must be implemented in a concrete class of PlotDrawer.
+        * All subclasses must re-create lists which include parameters
+          used in plotting function
+          - self.default_args
+          - self.optional_args
+          - etc.
+        """
         pass
 
     def read_csv(self):
+        """
+        Read the csv file (self.file) and store data as instance variables
+        """
         print("reading the csv file")
         if not self.noheader:
             self.df = pd.read_csv(self.file)
@@ -30,6 +41,10 @@ class PlotDrawer(metaclass=ABCMeta):
         self.columns = self.df.columns
 
     def draw(self, arg_dict):
+        """
+        Set configuration based on the arg_dict which includes params specified by
+        command line args ,draw a plot and save it
+        """
         self.set_conf(arg_dict)
         self.read_csv()
         self.set_input(arg_dict)
@@ -41,6 +56,11 @@ class PlotDrawer(metaclass=ABCMeta):
 
     @abstractmethod
     def plot(self):
+        """
+        * This method must be implemented in a concrete class of PlotDrawer.
+        * This method is called after configuration phases and
+        actual plot functions should be called in this method.
+        """
         pass
 
     def print_header(self):
@@ -50,6 +70,10 @@ class PlotDrawer(metaclass=ABCMeta):
             print("    {}: {}".format(i, column))
 
     def default_input(self, arg_dict, key):
+        """
+        Get input from user if params are NOT set by args OR
+        if params specified by args are not valid
+        """
         if key in arg_dict and arg_dict[key] in self.columns:
             self.arg_dict[key] = arg_dict[key]
         else:
@@ -57,6 +81,10 @@ class PlotDrawer(metaclass=ABCMeta):
             self.arg_dict[key] = self.columns[str(input())]
 
     def optional_input(self, arg_dict, key):
+        """
+        Get input from user if params are set by args OR
+        if params specified by args are not valid
+        """
         if key in arg_dict:
             if arg_dict[key] in self.columns:
                 self.arg_dict[key] = arg_dict[key]
@@ -72,6 +100,10 @@ class PlotDrawer(metaclass=ABCMeta):
             self.arg_dict[key] = int(input())
 
     def set_input(self, arg_dict):
+        """
+        Get input and store them to self.arg_dict[key] by iteratively calling
+        XXX_input functions
+        """
         self.print_header()
         for key in self.default_args:
             self.default_input(arg_dict, key)
@@ -125,7 +157,7 @@ class PlotDrawer(metaclass=ABCMeta):
 
     def set_conf(self, arg_dict):
         """
-        set config dict based on the command line args
+        Set config variables based on the command line args
         """
         self.outfile = arg_dict["outfile"] if "outfile" in arg_dict else self.file.replace(".csv", ".png")
         self.noheader = arg_dict["noheader"] if "noheader" in arg_dict else False
@@ -194,6 +226,15 @@ class JointPlotDrawer(PlotDrawer):
 
     def plot(self):
         sns.jointplot(**self.arg_dict)
+
+class StripPlotDrawer(PlotDrawer):
+    """ JointPlotDrawer """
+    def post_init(self):
+        self.default_args = ["x", "y"]
+        self.optional_args = ["hue"]
+
+    def plot(self):
+        sns.stripplot(**self.arg_dict)
 
 class PairPlotDrawer(PlotDrawer):
     """ PairPlotDrawer """
