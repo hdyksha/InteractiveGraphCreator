@@ -4,6 +4,7 @@ class PlotDrawerFactory():
     """ PlotDrawerFactory """
     def __init__(self):
         """ init """
+        # list of plot type which is implemented as subclasses of PlotDrawer
         self.plot_types = ['scatter',
                            'point',
                            'bar',
@@ -11,6 +12,7 @@ class PlotDrawerFactory():
                            'box',
                            'count',
                            'joint',
+                           'strip',
                            'pair']
 
     def create(self, file, plot_type):
@@ -29,6 +31,8 @@ class PlotDrawerFactory():
             return CountPlotDrawer(file)
         elif plot_type == "joint":
             return JointPlotDrawer(file)
+        elif plot_type == "strip":
+            return StripPlotDrawer(file)
         elif plot_type == "pair":
             return PairPlotDrawer(file)
         else:

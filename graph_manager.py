@@ -85,19 +85,19 @@ class GraphManager():
                             type=str,
                             nargs="?",
                             const="?",
-                            help="set context")
+                            help="set context (paper, notebook, talk, poster)")
         parser.add_argument("-s",
                             "--style",
                             type=str,
                             nargs="?",
                             const="?",
-                            help="set style")
+                            help="set style (darkgrid, whitegrid, ticks, etc.)")
         parser.add_argument("-P",
                             "--palette",
                             type=str,
                             nargs="?",
                             const="?",
-                            help="set palette")
+                            help="set palette (deep, muted, pastel, etc.)")
         args = parser.parse_args()
         print(vars(args))
         for k, v in vars(args).items():
