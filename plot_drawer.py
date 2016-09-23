@@ -40,23 +40,42 @@ class PlotDrawer(metaclass=ABCMeta):
 
     def input_x(self):
         self.print_header()
-        print("input(x-axis): ", end='')
-        self.arg_dict["x"] = self.columns[str(input())]
+        # if x is not specified by args
+        # or
+        # if the specified column is not in the header
+        if not "x" in self.arg_dict or not self.arg_dict["x"] in self.columns:
+            print("input(x-axis): ", end='')
+            self.arg_dict["x"] = self.columns[str(input())]
 
     def input_x_y(self):
         self.input_x()
-        print("input(y-axis): ", end='')
-        self.arg_dict["y"] = self.columns[str(input())]
+        # if y is not specified by args
+        # or
+        # if the specified column is not in the header
+        if not "y" in self.arg_dict or not self.arg_dict["y"] in self.columns:
+            print("input(y-axis): ", end='')
+            self.arg_dict["y"] = self.columns[str(input())]
 
     def input_hue(self):
-        if self.hue:
+        # if hue is specified by args
+        # and
+        # if the specified column is not in the header
+        if "hue" in self.arg_dict and not self.arg_dict["hue"] in self.columns:
             print("input(hue): ", end='')
             self.arg_dict["hue"] = self.columns[str(input())]
 
     def set_conf(self, arg_dict):
-        self.outfile = arg_dict["outfile"] if arg_dict["outfile"] else self.file.replace(".csv", ".png")
-        self.noheader = True if arg_dict["noheader"] else False
-        self.hue = True if arg_dict["hue"] else False
+        """
+        set config dict based on the command line args
+        """
+        self.outfile = arg_dict["outfile"] if "outfile" in arg_dict else self.file.replace(".csv", ".png")
+        self.noheader = arg_dict["noheader"] if "noheader" in arg_dict else False
+        if "xaxis" in arg_dict: self.arg_dict["x"] = arg_dict["xaxis"]
+        if "yaxis" in arg_dict: self.arg_dict["y"] = arg_dict["yaxis"]
+        if "hue" in arg_dict: self.arg_dict["hue"] = arg_dict["hue"]
+
+    def remove_item(self, key):
+        if key in self.arg_dict: del self.arg_dict[key]
 
 class ScatterPlotDrawer(PlotDrawer):
     """ ScatterPlotDrawer """
@@ -83,6 +102,8 @@ class DistPlotDrawer(PlotDrawer):
     """ DistPlotDrawer """
     def plot(self):
         self.input_x()
+        self.remove_item("y")
+        self.remove_item("hue")
         sns.distplot(self.df[self.arg_dict["x"]])
 
 class BoxPlotDrawer(PlotDrawer):
@@ -97,16 +118,20 @@ class CountPlotDrawer(PlotDrawer):
     def plot(self):
         self.input_x()
         self.input_hue()
+        self.remove_item("y")
         sns.countplot(**self.arg_dict)
 
 class JointPlotDrawer(PlotDrawer):
     """ JointPlotDrawer """
     def plot(self):
         self.input_x_y()
+        self.remove_item("hue")
         sns.jointplot(**self.arg_dict)
 
 class PairPlotDrawer(PlotDrawer):
     """ PairPlotDrawer """
     def plot(self):
         self.input_hue()
+        self.remove_item("x")
+        self.remove_item("y")
         sns.pairplot(**self.arg_dict)
