@@ -82,6 +82,10 @@ class GraphManager():
                             "--ylabel",
                             type=str,
                             help="overwrite the ylabel")
+        parser.add_argument("-t",
+                            "--title",
+                            type=str,
+                            help="add title to the graph")
         parser.add_argument("-u",
                             "--hue",
                             type=str,
