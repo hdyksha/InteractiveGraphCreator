@@ -1,3 +1,4 @@
+import os
 from abc import ABCMeta, abstractmethod
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -173,7 +174,11 @@ class PlotDrawer(metaclass=ABCMeta):
         """
         Set config variables based on the command line args
         """
-        self.outfile = arg_dict["outfile"] if "outfile" in arg_dict else self.file.replace(".csv", ".eps")
+        extension = ".png"
+        if os.path.exists(self.file) :
+            self.outfile = arg_dict["outfile"] if "outfile" in arg_dict else self.file.replace(".csv", extension)
+        else : # when the input file is a remote file
+            self.outfile = arg_dict["outfile"] if "outfile" in arg_dict else self.file.split("/")[-1].replace(".csv", extension)
         self.noheader = arg_dict["noheader"] if "noheader" in arg_dict else False
         self.xlabel = arg_dict["xlabel"] if "xlabel" in arg_dict else None
         self.ylabel = arg_dict["ylabel"] if "ylabel" in arg_dict else None
