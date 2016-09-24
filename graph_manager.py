@@ -21,7 +21,7 @@ class GraphManager():
 
     def prompt_file_selection(self, file_lst):
         print("--------------------------------------------------")
-        print("please select a number of csv file")
+        print("please select a number of a csv file")
         for i, file in enumerate(file_lst):
             print("    {}: {}".format(i, file))
         try:
@@ -39,7 +39,7 @@ class GraphManager():
         pdfactory = PlotDrawerFactory()
         if not self.plot_type:
             print("--------------------------------------------------")
-            print("please select a number of plot type")
+            print("please select a number of a plot type")
             plot_types = pdfactory.get_plot_types()
             for i, plot_type in enumerate(plot_types):
                 print("    {}: {}".format(i, plot_type))
