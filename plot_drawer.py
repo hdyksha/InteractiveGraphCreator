@@ -47,16 +47,16 @@ class PlotDrawer(metaclass=ABCMeta):
         """
         self.set_conf(arg_dict)
         self.read_csv()
-#        print(self.df["id"].quantile(.99))
         self.set_input(arg_dict)
         self.set_context()
         self.set_style()
         self.set_palette()
 #        print(self.arg_dict)
         self.plot = self.plot()
-#        plt.plot([0, 100], [self.df[self.arg_dict["y"]].quantile(.9), self.df[self.arg_dict["y"]].quantile(.9)])
-        self.label()
+        self.set_labels()
+        self.set_title()
         sns.plt.savefig(self.outfile)
+        print("The plot is saved as {}".format( self.outfile))
 
     @abstractmethod
     def plot(self):
@@ -67,11 +67,15 @@ class PlotDrawer(metaclass=ABCMeta):
         """
         pass
 
-    def label(self):
+    def set_labels(self):
         if "x" in self.arg_dict and self.xlabel:
             sns.plt.xlabel(self.xlabel)
         if "y" in self.arg_dict and self.ylabel:
             sns.plt.ylabel(self.ylabel)
+
+    def set_title(self):
+        if self.title:
+            sns.plt.title(self.title)
 
     def print_header(self):
         print("--------------------------------------------------")
@@ -169,10 +173,11 @@ class PlotDrawer(metaclass=ABCMeta):
         """
         Set config variables based on the command line args
         """
-        self.outfile = arg_dict["outfile"] if "outfile" in arg_dict else self.file.replace(".csv", ".png")
+        self.outfile = arg_dict["outfile"] if "outfile" in arg_dict else self.file.replace(".csv", ".eps")
         self.noheader = arg_dict["noheader"] if "noheader" in arg_dict else False
         self.xlabel = arg_dict["xlabel"] if "xlabel" in arg_dict else None
         self.ylabel = arg_dict["ylabel"] if "ylabel" in arg_dict else None
+        self.title = arg_dict["title"] if "title" in arg_dict else None
         self.context = arg_dict["context"] if "context" in arg_dict else None
         self.style = arg_dict["style"] if "style" in arg_dict else None
         self.palette = arg_dict["palette"] if "palette" in arg_dict else None
@@ -239,7 +244,7 @@ class JointPlotDrawer(PlotDrawer):
     def plot(self):
         return sns.jointplot(**self.arg_dict)
 
-    def label(self):
+    def set_labels(self):
         xlabel = self.xlabel if self.xlabel else self.arg_dict["x"]
         ylabel = self.ylabel if self.ylabel else self.arg_dict["y"]
         self.plot.set_axis_labels(xlabel, ylabel)
@@ -276,5 +281,8 @@ class PercentilePlotDrawer(PlotDrawer):
         p = .99
         percentile = self.df[self.arg_dict["y"]].quantile(p)
         sns.plt.plot([xmin, xmax], [percentile, percentile], color)
-        sns.plt.title('{}%ile = {}'.format(int(p*100), percentile))
+        sns.plt.text(xmin, percentile,
+                     '{0}%ile = {1:.2f}'.format(int(p*100), percentile),
+                     horizontalalignment="left",
+                     verticalalignment="bottom")
         return plot
