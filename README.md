@@ -1,3 +1,9 @@
+* You can run the python script without any arguments and can interactively select required parameters to be used for drawing graphs.
+* You can also explicitly assign parameters by command line arguments (e.g. filename, plot type, x-axis, etc.)
+
+### Use the program as a console command
+
+```
 $ python graph_manager.py -h
 usage: graph_manager.py [-h] [-f FILE] [-o OUTFILE] [-p PLOT] [-n] [-x X]
                         [-y Y] [-xl XLABEL] [-yl YLABEL] [-t TITLE] [-u [HUE]]
@@ -28,3 +34,6 @@ optional arguments:
                         set style (darkgrid, whitegrid, ticks, etc.)
   -P [PALETTE], --palette [PALETTE]
                         set palette (deep, muted, pastel, etc.)
+```
+### Use the program as a module in ipython-notebook
+ref: [graph_creator.ipynb](./graph_creator.ipynb)
