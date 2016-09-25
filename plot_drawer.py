@@ -28,18 +28,18 @@ class PlotDrawer(metaclass=ABCMeta):
         """
         pass
 
-    def read_csv(self):
+    def read_csv(self, infile, noheader=False):
         """
-        Read the csv file (self.file) and store data as instance variables
+        Read a csv file and store data as instance variables
         """
         print("reading the csv file")
-        if not self.noheader:
-            self.df = pd.read_csv(self.file)
+        if not noheader:
+            df = pd.read_csv(infile)
         else:
-            self.df = pd.read_csv(self.file, header=None)
-            self.df.columns = [ "column"+str(x) for x in self.df.columns ]
-        self.arg_dict["data"] = self.df
-        self.columns = self.df.columns
+            df = pd.read_csv(infile, header=None)
+            df.columns = [ "column"+str(x) for x in df.columns ]
+        self.arg_dict["data"] = df
+        self.columns = df.columns
 
     def draw(self, arg_dict):
         """
@@ -47,12 +47,6 @@ class PlotDrawer(metaclass=ABCMeta):
         command line args, draw a plot and save it
         """
         self.set_conf(arg_dict)
-        self.read_csv()
-        self.set_input(arg_dict)
-        self.set_context()
-        self.set_style()
-        self.set_palette()
-#        print(self.arg_dict)
         self.plot = self.plot()
         self.set_labels()
         self.set_title()
@@ -78,11 +72,11 @@ class PlotDrawer(metaclass=ABCMeta):
         if self.title:
             sns.plt.title(self.title)
 
-    def print_header(self):
+    def print_options(self, options, message="please select a number"):
         print("--------------------------------------------------")
-        print("please select column(s) to be used as axises")
-        for i, column in enumerate(self.columns):
-            print("    {}: {}".format(i, column))
+        print(message)
+        for i, option in enumerate(options):
+            print("    {}: {}".format(i, option))
 
     def default_input(self, arg_dict, key):
         """
@@ -119,7 +113,8 @@ class PlotDrawer(metaclass=ABCMeta):
         Get input and store them to self.arg_dict[key] by iteratively calling
         XXX_input functions
         """
-        self.print_header()
+        msg = "please select columns(s) to be used as axis(es)"
+        self.print_options(self.columns, msg)
         for key in self.default_args:
             self.default_input(arg_dict, key)
         for key in self.optional_args:
@@ -127,65 +122,50 @@ class PlotDrawer(metaclass=ABCMeta):
         for key in self.optional_numeric_args:
             self.optional_numeric_input(arg_dict, key)
 
-    def set_context(self):
+    def apply_option(self, func, option, options, message):
+        if option in options:
+            func(option)
+        else:
+            self.print_options(options, message)
+            print("input: ", end='')
+            func(options[int(input())])
+
+    def set_context(self, context):
         contexts = ["paper", "notebook", "talk", "poster"]
-        if self.context:
-            if self.context in contexts:
-                sns.set_context(self.context)
-            else:
-                print("--------------------------------------------------")
-                print("please select a context parameter")
-                for i, context in enumerate(contexts):
-                    print("    {}: {}".format(i, context))
-                print("input(context): ", end='')
-                sns.set_context(contexts[int(input())])
+        msg = "please select a context parameter"
+        self.apply_option(sns.set_context, context, contexts, msg)
 
-    def set_style(self):
+    def set_style(self, style):
         styles = ["darkgrid", "whitegrid", "dark", "white", "ticks"]
-        if self.style:
-            if self.style in styles:
-                sns.set_style(self.style)
-            else:
-                print("--------------------------------------------------")
-                print("please select a style parameter")
-                for i, style in enumerate(styles):
-                    print("    {}: {}".format(i, style))
-                print("input(style): ", end='')
-                sns.set_style(styles[int(input())])
-        else:
-            sns.set_style("whitegrid")
+        msg = "please select a style parameter"
+        self.apply_option(sns.set_style, style, styles, msg)
 
-    def set_palette(self):
+    def set_palette(self, palette):
         palettes = ["deep", "muted", "pastel", "bright", "dark", "colorblind"]
-        if self.palette:
-            if self.palette in palettes:
-                sns.set_palette(self.palette)
-            else:
-                print("--------------------------------------------------")
-                print("please select a palette parameter")
-                for i, palette in enumerate(palettes):
-                    print("    {}: {}".format(i, palette))
-                print("input(palette): ", end='')
-                sns.set_palette(palettes[int(input())])
-        else:
-            sns.set_palette("deep")
+        msg = "please select a palette parameter"
+        self.apply_option(sns.set_palette, palette, palettes, msg)
 
     def set_conf(self, arg_dict):
         """
         Set config variables based on the command line args
         """
+        noheader = arg_dict["noheader"] if "noheader" in arg_dict else False
+        self.read_csv(self.file, noheader)
+        self.set_input(arg_dict)
+        if "context" in arg_dict: self.set_context(arg_dict["context"])
+        else: sns.set_context("notebook") # set default context
+        if "style" in arg_dict: self.set_style(arg_dict["style"])
+        else: sns.set_style("ticks") # set default style
+        if "palette" in arg_dict: self.set_palette(arg_dict["palette"])
+        else: sns.set_palette("colorblind") # set default style
+        self.xlabel = arg_dict["xlabel"] if "xlabel" in arg_dict else None
+        self.ylabel = arg_dict["ylabel"] if "ylabel" in arg_dict else None
+        self.title = arg_dict["title"] if "title" in arg_dict else None
         extension = ".png"
         if os.path.exists(self.file) :
             self.outfile = arg_dict["outfile"] if "outfile" in arg_dict else self.file.replace(".csv", extension)
         else : # when the input file is a remote file
             self.outfile = arg_dict["outfile"] if "outfile" in arg_dict else self.file.split("/")[-1].replace(".csv", extension)
-        self.noheader = arg_dict["noheader"] if "noheader" in arg_dict else False
-        self.xlabel = arg_dict["xlabel"] if "xlabel" in arg_dict else None
-        self.ylabel = arg_dict["ylabel"] if "ylabel" in arg_dict else None
-        self.title = arg_dict["title"] if "title" in arg_dict else None
-        self.context = arg_dict["context"] if "context" in arg_dict else None
-        self.style = arg_dict["style"] if "style" in arg_dict else None
-        self.palette = arg_dict["palette"] if "palette" in arg_dict else None
 
 class ScatterPlotDrawer(PlotDrawer):
     """ ScatterPlotDrawer """
@@ -221,7 +201,7 @@ class DistPlotDrawer(PlotDrawer):
         self.default_args = ["x"]
 
     def plot(self):
-        return sns.distplot(self.df[self.arg_dict["x"]])
+        return sns.distplot(self.arg_dict["data"][self.arg_dict["x"]])
 
 class BoxPlotDrawer(PlotDrawer):
     """ BoxPlotDrawer """
@@ -279,13 +259,13 @@ class PercentilePlotDrawer(PlotDrawer):
 
     def plot(self):
         plot = sns.lmplot(**self.arg_dict, fit_reg=False)
-        xmin = self.df[self.arg_dict["x"]].min()
-        xmax = self.df[self.arg_dict["x"]].max()
+        xmin = self.arg_dict["data"][self.arg_dict["x"]].min()
+        xmax = self.arg_dict["data"][self.arg_dict["x"]].max()
         # http://xkcd.com/color/rgb/
         color = sns.xkcd_rgb["cool grey"]
         p = .99
-        percentile = self.df[self.arg_dict["y"]].quantile(p)
-        sns.plt.plot([xmin, xmax], [percentile, percentile], color)
+        percentile = self.arg_dict["data"][self.arg_dict["y"]].quantile(p)
+        sns.plt.plot([xmin, xmax], [percentile, percentile], color, linestyle="dashed")
         sns.plt.text(xmin, percentile,
                      '{0}%ile = {1:.2f}'.format(int(p*100), percentile),
                      horizontalalignment="left",
