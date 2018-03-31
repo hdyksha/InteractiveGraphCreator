@@ -87,7 +87,7 @@ class PlotDrawer(metaclass=ABCMeta):
             self.arg_dict[key] = arg_dict[key]
         else:
             print("input({}): ".format(key), end='')
-            self.arg_dict[key] = self.columns[str(input())]
+            self.arg_dict[key] = self.columns[int(input())]
 
     def optional_input(self, arg_dict, key):
         """
@@ -99,7 +99,7 @@ class PlotDrawer(metaclass=ABCMeta):
                 self.arg_dict[key] = arg_dict[key]
             else:
                 print("input({}): ".format(key), end='')
-                self.arg_dict[key] = self.columns[str(input())]
+                self.arg_dict[key] = self.columns[int(input())]
 
     def optional_numeric_input(self, arg_dict, key):
         if key in arg_dict and isinstance(arg_dict[key], int):
